@@ -1,0 +1,4 @@
+
+
+class TimeoutGameOver(Exception):
+    pass
