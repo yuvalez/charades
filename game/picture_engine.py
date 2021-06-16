@@ -2,20 +2,29 @@ import os
 import random
 import pygame
 
+from game_over_exceptions import PicturePoolEndedGameOver
+
 
 class PictureEngine:
     def __init__(self, path, picture_fixed_size=None):
         self.path = path
-        self.pool = self._generate_picture_pool(self.path)
         self.picture_fixed_size = picture_fixed_size
         self.current_picture = None
         self.current_picture_title = None
+        self.pool = None
 
-    @staticmethod
-    def _generate_picture_pool(path):
-        pics = os.listdir(path)
+    def has_pictures_left(self):
+        return len(self.pool) > 0
+
+    def init_picture_pool(self, path, selected_categories=None):
+        pics = []
+        if selected_categories is None:
+            selected_categories = ["הכל"]
+        for category in selected_categories:
+            pics.extend(list(map(lambda x: os.path.join(category, x), os.listdir(os.path.join(path, category)))))
+
         random.shuffle(pics)
-        return pics
+        self.pool = pics
 
     def draw(self, screen, pos):
         picture = self.get_picture()
@@ -37,9 +46,10 @@ class PictureEngine:
         return self.current_picture_title
 
     def next_picture(self):
-        picture = self.pool.pop()
-        self.current_picture_title = ''.join(picture.split(".")[:-1])
-        self.current_picture = os.path.join(self.path, picture)
+        try:
+            picture = self.pool.pop()
+        except Exception:
+            raise PicturePoolEndedGameOver()
 
-    def reset_pool(self):
-        self.pool = self._generate_picture_pool(self.path)
+        self.current_picture_title = os.path.basename(''.join(picture.split(".")[:-1]))
+        self.current_picture = os.path.join(self.path, picture)
