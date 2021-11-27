@@ -12,6 +12,7 @@ class PictureEngine:
         self.current_picture = None
         self.current_picture_title = None
         self.pool = None
+        self.used_pictures = []
 
     def has_pictures_left(self):
         return len(self.pool) > 0
@@ -23,11 +24,16 @@ class PictureEngine:
         for category in selected_categories:
             pics.extend(list(map(lambda x: os.path.join(category, x), os.listdir(os.path.join(path, category)))))
 
+        # Remove used pictures in this game instance from pool
+        [pics.remove(pic) for pic in self.used_pictures]
         random.shuffle(pics)
         self.pool = pics
 
     def draw(self, screen, pos):
-        picture = self.get_picture()
+        try:
+            picture = self.get_picture()
+        except Exception as e:
+            self.next_picture()
         if self.picture_fixed_size:
             picture = pygame.transform.scale(picture, self.picture_fixed_size)
         new_width = pos[0] - picture.get_width() // 2
@@ -45,11 +51,14 @@ class PictureEngine:
     def get_picture_title(self):
         return self.current_picture_title
 
+    def reset_used_pictures(self):
+        self.used_pictures = []
+
     def next_picture(self):
         try:
             picture = self.pool.pop()
         except Exception:
             raise PicturePoolEndedGameOver()
-
+        self.used_pictures.append(picture)
         self.current_picture_title = os.path.basename(''.join(picture.split(".")[:-1]))
         self.current_picture = os.path.join(self.path, picture)

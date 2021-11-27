@@ -1,5 +1,10 @@
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+except:
+    print("You must have selenium installed in order to use this script!")
+    raise
 import requests
 import os
 import time
@@ -35,7 +40,7 @@ def main(categories):
             # driver.fullscreen_window()
             try:
                 driver.find_element_by_xpath(f'//*[@id="islrg"]/div[1]/div[{index}]/a[1]/div[1]/img').click()
-                img = driver.find_element_by_xpath('//*[@id="Sva75c"]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div/div[2]/a/img')
+                img = driver.find_element_by_xpath('//*[@id="Sva75c"]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div/div[1]/a/img')
                 no_source = True
                 in_counter = 0
                 while no_source:
@@ -61,9 +66,9 @@ def main(categories):
                             no_source = False
                             index += 1
 
-            except:
+            except Exception as e:
                 index += 1
-                print(words[word_index])
+                print(words[word_index], e)
 
 
 

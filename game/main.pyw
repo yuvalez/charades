@@ -122,6 +122,14 @@ class Game:
             print(e)
         self.cb_start_round()
 
+    def _game_over(self):
+        self._clear_window()
+        pos = (self.window_width * 0.5, self.window_height * 0.5)
+        next_up = self._create_text_obj("Out of pictures! Sorry...", pos, Colors.BLACK, 80)
+        self.screen.blit(*next_up)
+        pygame.display.flip()
+        pygame.time.wait(1500)
+
     def display_score(self):
         def _play_draw_sound():
             fp = "draw.mp3"
@@ -205,9 +213,9 @@ class Game:
             box = InputBox(width, self.window_height * 0.2, 140, 32)
             boxes[team] = box
 
-        round_box = InputBox(self.window_width * 0.075, self.window_height * 0.15, 64, 32, str(NUMBER_OF_ROUNDS), True,
-                             only_int=True)
-        round_time_box = InputBox(self.window_width * 0.075, self.window_height * 0.3, 64, 32, str(GAME_TIME),
+        round_box = InputBox(self.window_width * 0.075, self.window_height * 0.15, 64, 32, str(self.number_of_rounds),
+                             True, only_int=True)
+        round_time_box = InputBox(self.window_width * 0.075, self.window_height * 0.3, 64, 32, str(self.game_time),
                                   only_int=True)
 
         start_button = Button(self.screen, (self.window_width * 0.575 - 50, self.window_height * 0.9), (100, 50), 15,
@@ -311,8 +319,11 @@ class Game:
                 try:
                     [button.check_click(event) for button in buttons]
                 except PicturePoolEndedGameOver:
+                    self._game_over()
                     self.round_started = False
-
+                    self.picture_engine.reset_used_pictures()
+                    self.round_score.reset_round()
+                    return
             # Print timer clock
             self._clear_window()
             timer = self.font.render(counter.get_time_string(), True,
@@ -365,7 +376,12 @@ class Game:
         round_counter = 1
         in_round_counter = 0
         teams = list(self.teams.teams.keys())
+        self.teams.reset_score()
         countdown: Counter = None
+        if not self.picture_engine.has_pictures_left():
+            self.picture_engine.reset_used_pictures()
+            self.picture_engine.init_picture_pool(self.path, selected_categories)
+
         while not end_game and self.picture_engine.has_pictures_left():
             self._clear_window()
             self._score_table()
@@ -401,6 +417,7 @@ class Game:
 
             if round_counter > self.number_of_rounds:
                 self._reset_game()
+                self.round_score.reset_round()
                 end_game = True
 
             pygame.display.flip()

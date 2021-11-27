@@ -23,3 +23,7 @@ class Teams:
 
     def is_members_in_teams(self):
         return any(filter(lambda x: len(x), self.teams.values()))
+
+    def reset_score(self):
+        for team in self.teams.keys():
+            self.score[team] = []
